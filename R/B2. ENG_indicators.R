@@ -2,7 +2,6 @@
 # ---------------------------------------------------------------------------- #
 # Title:   Population total variation
 # Country: England by deprivation deciles
-# Author:  Gomez-Ugarte Ana C 
 # ---------------------------------------------------------------------------- #
 
 # Content:

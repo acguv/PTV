@@ -2,7 +2,6 @@
 # ---------------------------------------------------------------------------- #
 # Title:   Population total variation
 # Country: Motivation figures
-# Author:  Gomez-Ugarte Ana C 
 # ---------------------------------------------------------------------------- #
 
 # Content:

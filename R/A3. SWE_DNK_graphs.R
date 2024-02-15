@@ -2,7 +2,6 @@
 # ---------------------------------------------------------------------------- #
 # Title:   Population total variation
 # Country: Denmark and Sweden by education level
-# Author:  Gomez-Ugarte Ana C 
 # ---------------------------------------------------------------------------- #
 
 # Content:
