@@ -12,7 +12,6 @@
 
 
 # ------Life table from mortality rates------#
-# Authors: Carlo-Giovanni Camarda and Ugofilippo Basellini
 lifetable.mx <- function(x, mx, sex="M", ax=NULL){
   m <- length(x)
   n <- c(diff(x), NA)
