@@ -25,7 +25,8 @@ library(zoo)
 
 
 # 1. Population in England by sex and age
-# pop <- read.csv("ENG/Population_Eng.csv")
+# Download data from the Office of National Statistics 
+# Available at: https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/adhocs/009299numberofdeathsandpopulationsindeprivationdecileareasbysexandsingleyearofageenglandandwalesregisteredyears2001to2017
 pop <- read.csv("Data/Eng_Population_Deciles.csv")
 
 # 3. UK_deprivation_deciles.csv: Life tables by deciles 

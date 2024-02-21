@@ -43,8 +43,8 @@ Edu_LifeTables_weights <- read.csv("Data/DNKSWE_Ltables_eduprop_1991-2015.csv")
 
 # 2. Total population and deaths for Denmark and Sweden
 # Data downloaded from the Human Mortality Database (HMD) using the r package HMDHFDplus
-username = "gomezugartevalerio@demogr.mpg.de"
-pwd = "Pako2611!"
+username = ""
+pwd = ""
 
 Dnk_pop <- readHMDweb("DNK","Population5",username = username,password = pwd)
 Swe_pop <- readHMDweb("SWE","Population5",username = username,password = pwd) 
