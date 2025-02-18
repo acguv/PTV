@@ -1,7 +1,8 @@
 
 # ---------------------------------------------------------------------------- #
-# Title:   Population total variation
-# Country: Sweden and Denmark by Education
+# Paper:   Reassessing socioeconomic inequalities in mortality via distributional similarities
+# Title:   Data preparation
+# Country: Sweden and Denmark
 # ---------------------------------------------------------------------------- #
 
 # Content:
@@ -201,7 +202,6 @@ Edu_weights %>%
 # ---------------------------------------------------------------------------- #
 #     3. Save results
 # ---------------------------------------------------------------------------- #
-
 # save(lt_edu, file = "Data/SWE_DNK_LT_tot.RData")
 # save(Edu_ranks, file = "Data/SWE_DNK_Edu_ranks.RData")
 # save(Edu_weights, file = "Data/SWE_DNK_Edu_weigths.RData")

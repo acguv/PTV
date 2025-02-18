@@ -1,6 +1,7 @@
 
 # ---------------------------------------------------------------------------- #
-# Title:   Population total variation
+# Paper:   Reassessing socioeconomic inequalities in mortality via distributional similarities
+# Title:   Plot results
 # Country: Denmark and Sweden by education level
 # ---------------------------------------------------------------------------- #
 
@@ -35,7 +36,7 @@ source("R/Functions_PTV.R")
 #     1. Read and prepare data
 # ---------------------------------------------------------------------------- #
 
-# Download data from the supplementary information from N?meth et al. (2021) 
+# Download data from the supplementary information from Nemeth et al. (2021) 
 # https://doi.org/10.1186/s12963-021-00264-1
 
 # Read data
@@ -51,10 +52,9 @@ load("Results/SWE_DNK_indicators.RData")
 #     2. Main figures
 # ---------------------------------------------------------------------------- #
 
-
 # ------Swedish females age at death distribution------# 
 lt_edu %>%
-  filter(Country  == "Sweden" & Sex == "Female") %>%
+  filter(Country  == "Sweden" & Sex == "Female"  & Education != "Total") %>%
   filter(Period == "1991-1995" | Period == "2011-2015") %>%
   select(Age, AgeGrp, dx.d, Period, Education) %>%
   mutate(Education = fct_relevel(Education, 
@@ -74,7 +74,7 @@ lt_edu %>%
   theme(panel.grid.major = element_line(colour = "lightgrey")) +
   scale_x_continuous(breaks = seq(30, 90, 20), labels = c(seq(30, 80, 20), "90+"))
 
-# ggsave("Graphs/SWE_females_ADD.pdf", width = 7.21, height = 3.47)
+# ggsave("Graphs/Fig3.pdf", width = 7.21, height = 3.47)
 
 
 # ------Range and ratio of life expectancy------# 
@@ -133,9 +133,68 @@ c <- sii_edu %>%
   theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
 c
 
+# ------Pairwise non-overlap index------# 
+d <- noi_pair_edu %>%
+  ggplot(aes(x = Period, y = noi_pair, color = Country, lty = Sex, group = interaction(Country, Sex))) + 
+  geom_line(size = 1.5) + 
+  labs(x = "Year", y = expression(S^P), title = "Pairwise non-overlap index at age 30") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12), axis.title =  element_text(size = 13), legend.text = element_text(size = 13), 
+        plot.title = element_text(face = "bold"), legend.title = element_text(size = 13)) +
+  theme(axis.text.x = element_text(angle = 50, hjust=1), legend.position = "none")+
+  scale_color_manual(labels = c("Denmark" ,"Sweden"),
+                     values=c("#D41159", "#1A85FF")) +
+  scale_y_continuous(labels = label_number(accuracy = 0.01)) +
+  theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
+d
 
-# ------Population Total Variation (PTV)------# 
-d <- ptv_edu %>%
+# ------Total non-overlap index (NOI)------# 
+e <- noi_edu %>%
+  ggplot(aes(x = Period, y = noi_t, color = Country, lty = Sex, group = interaction(Country, Sex))) + 
+  geom_line(size = 1.5) + 
+  labs(x = "Year", y = expression(S^T), title = "Total non-overlap index at age 30") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12), axis.title =  element_text(size = 13), legend.text = element_text(size = 13), 
+        plot.title = element_text(face = "bold"), legend.title = element_text(size = 13)) +
+  theme(axis.text.x = element_text(angle = 50, hjust=1), legend.position = "none")+
+  scale_color_manual(labels = c("Denmark" ,"Sweden"),
+                     values=c("#D41159", "#1A85FF")) +
+  scale_y_continuous(labels = label_number(accuracy = 0.01)) +
+  theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
+e
+
+# ------Stratification index (Zhou et al.)------# 
+f <- S_edu %>%
+  ggplot(aes(x = Period, y = S, color = Country, lty = Sex, group = interaction(Country, Sex))) + 
+  geom_line(size = 1.5) + 
+  labs(x = "Year", y = "SI", title = "Stratification index at age 30") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12), axis.title =  element_text(size = 13), legend.text = element_text(size = 13), 
+        plot.title = element_text(face = "bold"), legend.title = element_text(size = 13)) +
+  theme(axis.text.x = element_text(angle = 50, hjust=1), legend.position = "none")+
+  scale_color_manual(labels = c("Denmark" ,"Sweden"),
+                     values=c("#D41159", "#1A85FF")) +
+  scale_y_continuous(labels = label_number(accuracy = 0.01)) +
+  theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
+f
+
+# ------Pairwise out-survival probability------# 
+g <- OV_pair_edu %>%
+  ggplot(aes(x = Period, y = OV_pair, color = Country, lty = Sex, group = interaction(Country, Sex))) + 
+  geom_line(size = 1.5) + 
+  labs(x = "Year", y = "OV", title = "Pairwise outsurvival probability index") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12), axis.title =  element_text(size = 13), legend.text = element_text(size = 13), 
+        plot.title = element_text(face = "bold"), legend.title = element_text(size = 13)) +
+  theme(axis.text.x = element_text(angle = 50, hjust=1), legend.position = "none")+
+  scale_color_manual(labels = c("Denmark" ,"Sweden"),
+                     values=c("#D41159", "#1A85FF")) +
+  scale_y_continuous(labels = label_number(accuracy = 0.01)) +
+  theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
+g
+
+# ------Population Total Variation (PTV) (for working paper)------# 
+h <- ptv_edu %>%
   ggplot(aes(x = Period, y = NPTV, color = Country, lty = Sex, group = interaction(Country, Sex))) + 
   geom_line(size = 1.5) + 
   labs(x = "Year", y = "PTV", title = "Population total variation at age 30") +
@@ -148,7 +207,7 @@ d <- ptv_edu %>%
   # scale_color_manual(values = c("#1A85FF")) + 
   scale_y_continuous(labels = label_number(accuracy = 0.01)) +
   theme(panel.grid.major = element_line(colour = "lightgrey"), panel.grid.minor = element_line(colour = "lightgrey"))
-d
+h
 
 # Print all plots together
 ggarrange(a, b, c, d, ncol = 2, nrow = 2, common.legend = TRUE, legend = "bottom")
@@ -157,4 +216,4 @@ ggarrange(a, b, c, d, ncol = 2, nrow = 2, common.legend = TRUE, legend = "bottom
 #     3. Save results
 # ---------------------------------------------------------------------------- #
 
-# ggsave("Graphs/SWE_DNK_relative.pdf", width = 8.98, height = 6.54)
+# ggsave("Graphs/Fig4.pdf", width = 8.98, height = 6.54)

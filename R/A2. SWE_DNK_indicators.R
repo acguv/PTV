@@ -1,13 +1,15 @@
 
 # ---------------------------------------------------------------------------- #
-# Title:   Population total variation
+# Paper:   Reassessing socioeconomic inequalities in mortality via distributional similarities
+# Title:   Estimating measures of SES inequality in mortality
 # Country: Denmark and Sweden by education level
 # ---------------------------------------------------------------------------- #
 
 # Content:
 #   0. Working directory, package and functions
 #   1. Read the data
-#   2. Main figures
+#   2. Estimate measures
+#   3. Save results
 
 # ---------------------------------------------------------------------------- #
 #     0. Working directory, package and functions
@@ -23,6 +25,7 @@ library(broom)
 library(ggpubr)
 library(tidyverse)
 library(scales)
+library(strat)
 
 # Working directory from safe environment
 #setwd("(...)")
@@ -42,7 +45,7 @@ load("Data/SWE_DNK_Edu_weigths.RData")
 who_std <- read.csv("Data/WHO_std_5_age.csv")
 
 # ---------------------------------------------------------------------------- #
-#     2. Main figures
+#     2. Estimate measures
 # ---------------------------------------------------------------------------- #
 
 # ------Range and ratio of life expectancy------# 
@@ -104,7 +107,64 @@ sii_edu <- edu_lt %>%
   select(Country, Sex, Period, rii, sii) %>%
   gather(measure, value, rii:sii) 
 
-# ------Population Total Variation (PTV)------# 
+# ------ Pairwise non-overlap index (Shi et al.)------#  
+noi_pair_edu <- lt_edu %>%
+  filter(Education != "Total") %>%
+  left_join(Edu_weights, by = c("Country", "Period", "Sex", "Education")) %>%
+  select(Period,  Country, Education, Sex, Age, dx.d, lx, Edu_weights, ex) %>%
+  mutate(lx = lx/100000) %>%
+  arrange(Period, Country, Sex, Education, Age) %>%
+  group_by(Country, Period, Sex) %>%
+  # filter(Period == "2006-08" & Sex == "Females") %>%
+  mutate(noi_pair = noi_pair_func_dx(c(dx.d, Edu_weights), n = 3))
+
+# ------Total non-overlap index (Shi et al)------# 
+noi_edu <- lt_edu %>%
+  arrange(Country, Sex, Period, Education) %>%
+  group_by(Country, Period, Sex, Age) %>% 
+  select(Country, Period, Sex,  Education,  Age, dx.d) %>%
+  spread(Education, dx.d) %>%
+  mutate(across("Low":"High" , function(x) apply(cbind(x, Total),1,max), .names = "max_{col}"),
+         across("Low":"High" , function(x) apply(cbind(x, Total),1,min), .names = "min_{col}")) %>%
+  select(Period, Sex, Age, starts_with("max"), starts_with("min")) %>%
+  gather("serie", "value", "max_Low":"min_High") %>%
+  mutate(limit = substr(serie, 1, 3),
+         Education = substr(serie, 5, 13)) %>%
+  group_by(Country, Period, Education, limit, Sex) %>%  
+  summarise(add = sum(value)) %>%
+  spread(limit, add) %>%
+  group_by(Country, Period, Education, Sex) %>%  
+  summarise(noi = 1-(sum(min)/sum(max))) %>%
+  left_join(Edu_weights, by = c("Country", "Period", "Sex", "Education")) %>%
+  group_by(Country, Period, Sex) %>% 
+  mutate(w_all = sum(Edu_weights)) %>%
+  mutate(cte_fact = 1-(Edu_weights/(1+w_all-Edu_weights))) %>%
+  summarise(noi_t = sum(noi*Edu_weights)*(1/sum(Edu_weights*cte_fact))) %>%
+  select(Country, Period, Sex, noi_t) %>%
+  unique() %>%
+  arrange(Country, Period, Sex)
+
+# ------Stratification index (Zhou et al.)------# 
+S_edu <- lt_edu %>%
+  filter(Education != "Total") %>%
+  arrange(Country, Sex, Period, Education) %>%
+  group_by(Country, Period, Sex, Age) %>% 
+  select(Country, Period, Sex,  Education,  Age, dx.d, EduPop) %>%
+  group_by(Country, Period, Sex) %>%
+  summarise(S = strat(Age, Education, weights = dx.d)$overall[1])
+
+# ------Outsurvival probability (Vaupel et al.) for multiple populations------# 
+OV_pair_edu <- lt_edu %>%
+  filter(Education != "Total") %>%
+  left_join(Edu_weights, by = c("Country", "Period", "Sex", "Education")) %>%
+  select(Period,  Country, Education, Sex, Age, dx.d, lx, Edu_weights, ex) %>%
+  mutate(lx = lx/100000) %>%
+  arrange(Period, Country, Sex, Education, Age) %>%
+  group_by(Country, Period, Sex) %>%
+  # filter(Period == "2006-08" & Sex == "Females") %>%
+  summarise(OV_pair = ov_pair_func_dx(dx.d, Edu_weights, lx, ex, n = 3))
+
+# ------Population Total Variation (PTV) (for working paper)------# 
 ptv_edu <- lt_edu %>%
   arrange(Country, Sex, Period, Education) %>%
   left_join(Edu_weights, by = c("Country", "Period", "Sex", "Education")) %>%
@@ -125,5 +185,5 @@ ptv_edu <- lt_edu %>%
 #     3. Save results
 # ---------------------------------------------------------------------------- #
 
-# save(ex_range_edu, sdv_range_edu, sii_edu, ptv_edu,
+# save(ex_range_edu, sdv_range_edu, sii_edu, ptv_edu, noi_edu, noi_pair_edu, S_edu, OV_pair_edu,
 #      file = "Results/SWE_DNK_indicators.RData")

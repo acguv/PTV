@@ -1,6 +1,7 @@
 
 # ---------------------------------------------------------------------------- #
-# Title:   Population total variation
+# Paper:   Reassessing socioeconomic inequalities in mortality via distributional similarities
+# Title:   Estimating measures of SES inequality in mortality
 # Country: England by deprivation deciles
 # ---------------------------------------------------------------------------- #
 
@@ -9,6 +10,7 @@
 #   1. Read the data
 #   2. Main figures
 #   3. Save results
+
 # ---------------------------------------------------------------------------- #
 #     0. Working directory, package and functions
 # ---------------------------------------------------------------------------- #
@@ -23,6 +25,7 @@ library(broom)
 library(ggpubr)
 library(tidyverse)
 library(scales)
+library(strat)
 
 # Working directory from safe environment
 #setwd("(...)")
@@ -102,7 +105,73 @@ sii_dpi <- lt_dpi_std %>%
   select(Sex, Period, rii, sii) %>%
   gather(measure, value, rii:sii) 
 
-# ------Population Total Variation (PTV)------# 
+# ------Pairwise non-overlap index (Shi et al.)------# 
+noi_pair_dpi <- lt_dpi %>%
+  filter(Decile != "Total") %>%
+  select(Period, Year, Decile, Sex, Age, dx.d, Population) %>%
+  arrange(Period, Sex, Decile, Age) %>%
+  group_by(Period, Year, Sex) %>%
+  mutate(noi_pair = noi_pair_func_dx(c(dx.d, Population), n = 10))
+
+# ------Total non-overlap index (Shi et. al)------# 
+noi_t_dpi <- lt_dpi %>%
+  group_by(Year, Sex, Age) %>%  
+  select(Period, Decile, Sex, Age, dx.d) %>%
+  spread(Decile, dx.d) %>%
+  mutate(across(starts_with("Decile") , function(x) apply(cbind(x, Total),1,max), .names = "max_{col}"),
+         across(starts_with("Decile") , function(x) apply(cbind(x, Total),1,min), .names = "min_{col}")) %>%
+  select(Period, Sex, Age, starts_with("max"), starts_with("min")) %>%
+  gather("serie", "value", "max_Decile 1":"min_Decile 10") %>%
+  mutate(limit = substr(serie, 1, 3),
+         Decile = substr(serie, 5, 13)) %>%
+  group_by(Year, Period, Decile, limit, Sex) %>%  
+  summarise(add = sum(value)) %>%
+  spread(limit, add) %>%
+  group_by(Year, Period, Decile, Sex) %>%  
+  summarise(noi = 1-(sum(min)/sum(max))) %>%
+  left_join(lt_dpi %>%
+              filter(Decile != "Total") %>%
+              group_by(Year, Period, Sex) %>%
+              mutate(pop_tot = sum(Population)) %>%
+              group_by(Year, Period, Decile, Sex) %>%
+              mutate(dpi_pop = sum(Population)) %>%
+              select(Year, Period, Sex, Decile, pop_tot, dpi_pop) %>%
+              unique() %>%
+              mutate(dpi_weight = dpi_pop/pop_tot) %>%
+              select(Year, Period, Sex, Decile, dpi_weight), 
+            by = c("Year", "Period", "Sex", "Decile")) %>%
+  group_by(Year, Period, Sex) %>%  
+  mutate(w_all = sum(dpi_weight)) %>%
+  mutate(cte_fact = 1-(dpi_weight/(1+w_all-dpi_weight))) %>%
+  summarise(noi_t = sum(noi*dpi_weight)*1/sum(dpi_weight*cte_fact)) %>%
+  select(Period, Sex, noi_t) %>%
+  unique() %>%
+  arrange(Sex, Period)
+
+# ------Stratification index (Zhou et al.)------# 
+S_dpi <- lt_dpi %>%
+  filter(Decile != "Total") %>%
+  select(Period, Year, Decile, Sex, Age, dx.d) %>%
+  arrange(Period, Sex, Decile, Age) %>%
+  group_by(Period, Year, Sex) %>%
+  mutate(S = strat(Age, Decile, weights = dx.d)$overall[1])
+
+# ------Pairwise out survival probability------# 
+OV_pair_dpi <- lt_dpi %>%
+  filter(Decile != "Total") %>%
+  select(Period, Year, Decile, Sex, Age, dx.d, lx, Population, ex) %>%
+  group_by(Period, Year, Sex) %>%
+  mutate(Pop_tot = sum(Population)) %>%
+  group_by(Period, Year, Decile, Sex) %>%
+  mutate(Pop_weight = sum(Population)/Pop_tot) %>%
+  mutate(lx = lx/100000) %>%
+  arrange(Period, Sex, Decile, Age) %>%
+  group_by(Period, Year, Sex) %>%
+  # filter(Period == "2006-08" & Sex == "Females") %>%
+  mutate(OV_pair = ov_pair_func_dx(dx.d, Pop_weight, lx, ex, n = 10))
+
+
+# ------Population Total Variation (PTV) (for working paper)------# 
 ptv_dpi <- lt_dpi %>%
   group_by(Year, Sex, Age) %>%  
   mutate(M = dx.d[Decile == "Total"]) %>%
@@ -121,4 +190,5 @@ ptv_dpi <- lt_dpi %>%
 # ---------------------------------------------------------------------------- #
 #     3. Save results
 # ---------------------------------------------------------------------------- #
-# save(ex_range_dpi, sdv_range_dpi, sii_dpi, ptv_dpi, file = "Results/ENG_indicators.RData")
+# save(ex_range_dpi, sdv_range_dpi, sii_dpi, noi_pair_dpi, noi_t_dpi,
+#      S_dpi, OV_pair_dpi, ptv_dpi, file = "Results/ENG_indicators.RData")

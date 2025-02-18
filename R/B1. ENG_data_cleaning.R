@@ -1,6 +1,7 @@
 
 # ---------------------------------------------------------------------------- #
-# Title:   Population total variation
+# Paper:   Reassessing socioeconomic inequalities in mortality via distributional similarities
+# Title:   Data preparation
 # Country: England
 # ---------------------------------------------------------------------------- #
 
@@ -23,13 +24,12 @@ library(ungroup)
 library(tidyr)
 library(zoo)
 
-
-# 1. Population in England by sex and age
+# Population in England by sex and age
 # Download data from the Office of National Statistics 
 # Available at: https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/adhocs/009299numberofdeathsandpopulationsindeprivationdecileareasbysexandsingleyearofageenglandandwalesregisteredyears2001to2017
 pop <- read.csv("Data/Eng_Population_Deciles.csv")
 
-# 3. UK_deprivation_deciles.csv: Life tables by deciles 
+# UK_deprivation_deciles.csv: Life tables by deciles 
 # Download data from the supplementary information from the Office of National Statistics 
 # Available at: https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/healthandlifeexpectancies/adhocs/009149lifetablebysingleyearofagesexanddeprivationdecilesinenglandbetween2006to2008and2014to2016 
 lt_eng_dep <- read.csv("Data/ENG_LT_deprivation_deciles.csv", header = TRUE, skip = 6)
