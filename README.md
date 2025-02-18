@@ -1,4 +1,10 @@
-# Population total variation (PTV)
+# Reassessing socioeconomic inequalities in mortality via distributional similarities
+
+Replication materials for:
+MPIDR Working Paper WP 2024-007: https://doi.org/10.4054/MPIDR-WP-2024-007
+
+
+### Data
 
 The original data sets were obtained from ONS and from the authors of Németh et al. 2021., these cannot be shared by us. Please contact the authors for obtaining the data; aggregate results from our analysis are available in the Results folder.
 
